@@ -1,18 +1,18 @@
-﻿Student,ID,abscence ,Q1,MidTerm,T1,EC,Attendence
-Max Score,,,15,,30,,10 
-Taylor-James Campbell,503,2,9,0.6,21,2,10
-Jean Cordero,6802,,12,0.8,27,,10
-Marianne Ellis,7031,,12,0.8,25,1,10
-Nicole Espin,1178,,11,0.733333333,26,1,10
-Sergio Garcia,6931,,11,0.733333333,27,,10
-Justin Gonzalez,1334,3,11,0.733333333,24,,5
-Julia James,5954,1,11,0.733333333,25,1,10
-Jeanine Messina,4142,1,12,0.8,25,1,10
-Maria Rincon,5264,,12,0.8,28,1,10
-Jasmine Robertson,4251,4,12,0.8,,1,0
-Milton Rodriguez,5267,,11,0.733333333,27,,10
-Reem Rum,5357,1,14,0.933333333,27,,10
-Angelina Sarro,2119,,12,0.8,26,1,10
-Jai Strong,2231,1,12,0.8,23,,10
-Samantha Thompson,5810,1,14,0.933333333,27,,10
-Tatiana Zevallos,5758,2,12,0.8,25,,10
+﻿ID,abscence ,Q1,MidTerm,T1,EC,Attendence,Hands-On,Finals
+MaxScore,,15,,30,,10,30,30
+tcampbell1969,2,9,0.6,21,2,10,30,30
+jcordero3,,12,0.8,27,,10,30,30
+mellis5,,12,0.8,25,1,10,30,30
+nespin,,11,0.733333333,26,1,10,30,30
+sgarcia6,,11,0.733333333,27,,10,30,30
+jgonzalez2264,3,11,0.733333333,24,,5,30,30
+jjames5,1,11,0.733333333,25,1,10,30,30
+jmessina,1,12,0.8,25,1,10,30,30
+mrincon,,12,0.8,28,1,10,30,30
+jrobertson2,4,12,0.8,,1,0,30,30
+mrodriguez10,,11,0.733333333,27,,10,30,30
+rrum,1,14,0.933333333,27,,10,30,30
+asarro,,12,0.8,26,1,10,30,30
+jstrong,1,12,0.8,23,,10,30,30
+sthompson6,1,14,0.933333333,27,,10,30,30
+tzevallos,2,12,0.8,25,,10,30,30

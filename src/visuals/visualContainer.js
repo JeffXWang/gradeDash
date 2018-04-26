@@ -4,6 +4,11 @@ import BarGraph from './bar'
 import PieGraph from './pie'
 import StackGraph from './stack'
 
+// when change dataset.  change items and maxScore. expect ID
+const items ={default:["Q1","Attendence","T1","EC"],alt:["Hands-On","Finals","Q1","Attendence","T1","EC"]};
+const maxScore =55;
+
+
 class EnterId extends Component {
   constructor(props) {
     super(props);
@@ -11,20 +16,26 @@ class EnterId extends Component {
   }
 
   handleSubmit(event) {
-    alert('A name was submitted: ' + this.input.value);
     event.preventDefault();
     this.props.searchId(this.input.value)
   }
 
+
+
   render() {
+    // !!!!! here the select interaction with
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          Name:
-          <input type="text" ref={(input) => this.input = input} />
-        </label>
-        <input type="submit" value="Submit" />
-      </form>
+      <div>
+        <form onSubmit={this.handleSubmit}>
+          <label>
+            4digit Id:
+            <input type="text" ref={(input) => this.input = input} />
+          </label>
+          <input type="submit" value="Submit" />
+        </form>
+        <button onClick={this.props.toggleData}>include future assignments </button>
+        <button >toggled class </button>
+      </ div>
     );
   }
 }
@@ -34,40 +45,52 @@ class VisContainer extends Component{
     super(props);
     this.state={
       data:null,
-      search:null
+      search:null,
+      toggleData:false
     }
-    this.searchId=this.searchId.bind(this)
+    this.searchId=this.searchId.bind(this);
+    this.toggleData=this.toggleData.bind(this)
   }
 
-  dataEnrich(data){
-    return (data.map(d=>{
-      d.total = (Number(d.Q1) + Number(d.T1) + Number(d.EC) +Number(d.Attendence))
-      return d;
-    }))
+  toggleData (){
+      console.log('about to toggle', this.state)
+      this.setState({toggleData:!this.state.toggleData})
   }
 
-  dataForPie(data){
+  dataTotal(data,items){
+    return data.map(aStu=>{
+      aStu.total = items.default.reduce((accu,current)=>accu+Number(aStu[current]),0)
+      aStu.altTotal = items.alt.reduce((accu,current)=>accu+Number(aStu[current]),0)
+      return aStu
+    })
+  }
+
+  dataForPie(data,items){
     if(!data){console.log('no data')}else{
-      let max= data.filter(d=>d.Student==="Max Score")[0];
-      return [{name:"Attendence",pts:Number(max.Attendence)},{name:"Q1",pts:Number(max.Q1)},{name:"T1",pts:Number(max.T1)}]
+      let max= data.find(d=>(d.ID=="MaxScore"));
+      let res =items.map(item=>({label:item,size:max[item]}))
+      console.log('res',res)
+      return res;
     }
   }
   //finished
 
-  dataForStack(data){
+  dataForStack(data,items,useAlt){
     if(!data){console.log('no data for stack')}else{
+      console.log('dataForStack', items,useAlt)
       let res= [];
       res = data.map(d=>{
-        return {
-          id:d.ID||"0001",
-            Q1: Number(d.Q1),
-            T1: Number(d.T1),
-            EC: Number(d.EC),
-            Attendence: Number(d.Attendence),
-            total: Number(d.total)
+
+        let aStudent = {
+          id:d.ID,
+          total:Number(useAlt? d.altTotal:d.total)
         }
+        items.map(key=>aStudent[key]=Number(d[key]))
+
+        return aStudent;
       })
-      res.columns=['Q1','T1','Attendence','EC']
+      res.columns=items
+
       return res;
     }
   }
@@ -78,7 +101,7 @@ class VisContainer extends Component{
     let count = {A:0,B:0,C:0,D:0};
     for (let i=0;i<data.length;i++)
     {
-      let p = data[i].total/55;
+      let p = data[i].total/maxScore;
       if(p>=0.9){
         count.A+=1
       } else if(p>=0.8) {
@@ -104,49 +127,53 @@ class VisContainer extends Component{
     this.setState({search:id})
   }
 
-  componentWillMount(){
+  getData(items){
     d3.csv('./grade.csv').then(d=>{
-      this.setState({data:this.dataEnrich(d)})
+      this.setState({data:this.dataTotal(d,items)})
     })
   }
 
+
+  componentWillMount(){
+    this.getData(items);
+  }
+
   componentDidMount(){
-    console.log('didmount',this.state.data)
+    console.log('didmount',this.state.data);
+  }
+
+  componentWillUpdate(){
 
   }
 
   componentDidUpdate(){
+    let itemSelection = this.state.toggleData? items.alt:items.default;
+    console.log(this.state.toggleData,itemSelection)
     if(!this.state.data){return (<div>loading data</div>)}
-    PieGraph(this.refs.pieSVG, this.dataForPie(this.state.data));
-    BarGraph(this.refs.barSVG,this.dataForBar(this.state.data));
-    StackGraph(this.refs.stackSVG,this.dataForStack(this.state.data),String(this.state.search))
-
+    PieGraph(this.refs.pieSVG,
+      this.dataForPie(this.state.data,itemSelection));
+    BarGraph(this.refs.barSVG,
+      this.dataForBar(this.state.data));
+    StackGraph(this.refs.stackSVG,
+      this.dataForStack(this.state.data,itemSelection,this.state.toggleData),
+      String(this.state.search))
   }
+
   render(){
     console.log("render",this.state.data)
     return(
       <div>
-        <EnterId searchId={this.searchId}/>
         <svg height="230" width="550" ref="pieSVG" />
         <svg height="250" width="550" ref="barSVG" />
+        <EnterId searchId={this.searchId} toggleData={this.toggleData} />
         <svg height="550" width="550" ref="stackSVG" />
       </div>
     )
+}}
 
-    // return(
-    //   <div>
-    //     from Container
-    //     <BarGraph data={this.dataForBar(this.state.data)}/>
-    //     <PieGraph data={this.dataForPie(this.state.data)} />
-    //   </div>
-    // )
-  }
-}
-
-// get data, hold data in state, send data
-// d3.csv('./grade.csv',(d)=>{
-//    console.log(d)
-//  }
-// )
 
 export default VisContainer;
+
+//plans
+// toggle for different data.
+// total calc for toggle
