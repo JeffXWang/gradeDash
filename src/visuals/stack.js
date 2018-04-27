@@ -50,7 +50,7 @@ const StackGraph=(svg,data,searchId)=>{
       .attr("d",
         d3.arc()
           .innerRadius(d=>y(d[0])+2)
-          .outerRadius(function(d) {console.log(y(d[0]),y(d[1])); return y(d[1]); })
+          .outerRadius(function(d) { return y(d[1]); })
           .startAngle(function(d) { return x(d.data.id)+0.01; })
           .endAngle(function(d) { return x(d.data.id) + x.bandwidth(); })
         )
@@ -106,7 +106,7 @@ let yAxis=g.append('g').attr("text-anchor", "end");
 
 //the data is points, the text is ABCD
 let gradeLine = [.9,.8,.7,.6].map(d=>d*(data.find(d=>d.id=="MaxScore").total))
-console.log('gradeLine',gradeLine)
+// console.log('gradeLine',gradeLine)
 let yTick= yAxis.selectAll('g')
   .data(gradeLine)
   .enter().append('g');

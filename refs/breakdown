@@ -1,0 +1,15 @@
+currently
+  able to toggle data selection
+next
+  make itemSelection a state
+  toggle between datasets
+    button push
+      1. button words change to loading message
+      2. CSV .then
+        change state
+          totals change, items selection, data
+      3. button words change to other class's name
+        state: default class other class
+  OR for toggle data sets
+    1. refactor so that both csv are parsed and put into state
+    2. toggle is simply feed what into data prep 

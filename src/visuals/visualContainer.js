@@ -3,9 +3,10 @@ import * as d3 from 'd3';
 import BarGraph from './bar'
 import PieGraph from './pie'
 import StackGraph from './stack'
+import dataForStack from './lib/dataForStack'
+import dataForPie from './lib/dataForPie'
 
 // when change dataset.  change items and maxScore. expect ID
-const items ={default:["Q1","Attendence","T1","EC"],alt:["Hands-On","Finals","Q1","Attendence","T1","EC"]};
 const maxScore =55;
 
 
@@ -34,7 +35,7 @@ class EnterId extends Component {
           <input type="submit" value="Submit" />
         </form>
         <button onClick={this.props.toggleData}>include future assignments </button>
-        <button >toggled class </button>
+        <button onClick={this.props.toggleClass}>toggled class </button>
       </ div>
     );
   }
@@ -45,59 +46,50 @@ class VisContainer extends Component{
     super(props);
     this.state={
       data:null,
+      items:{default:["Q1","Attendence","T1","EC"],alt:["Hands-On","Finals","Q1","Attendence","T1","EC"]},
+      data2:null,
+      items2:{default:["Attendence","P1","P2","P3" ,'EC'],alt:["Attendence","P1","P2","P3" ,'EC']},
       search:null,
-      toggleData:false
+      toggleData:false,
+      toggleClass:false
     }
     this.searchId=this.searchId.bind(this);
-    this.toggleData=this.toggleData.bind(this)
+    this.toggleData=this.toggleData.bind(this);
+    this.toggleClass=this.toggleClass.bind(this);
+    this.getData=this.getData.bind(this);
+    this.findData=this.findData.bind(this);
+  }
+
+  toggleClass(){
+    console.log('about to toggle class', this.state)
+
+    this.setState({toggleClass:!this.state.toggleClass})
   }
 
   toggleData (){
-      console.log('about to toggle', this.state)
+      console.log('about to toggle data selection', this.state)
       this.setState({toggleData:!this.state.toggleData})
   }
 
   dataTotal(data,items){
+    console.log('total items',items.default)
     return data.map(aStu=>{
+      items.default.map(d=> console.log('item default',aStu[d]))
       aStu.total = items.default.reduce((accu,current)=>accu+Number(aStu[current]),0)
       aStu.altTotal = items.alt.reduce((accu,current)=>accu+Number(aStu[current]),0)
+      console.log('total',aStu)
       return aStu
     })
   }
 
-  dataForPie(data,items){
-    if(!data){console.log('no data')}else{
-      let max= data.find(d=>(d.ID=="MaxScore"));
-      let res =items.map(item=>({label:item,size:max[item]}))
-      console.log('res',res)
-      return res;
-    }
-  }
+
   //finished
 
-  dataForStack(data,items,useAlt){
-    if(!data){console.log('no data for stack')}else{
-      console.log('dataForStack', items,useAlt)
-      let res= [];
-      res = data.map(d=>{
 
-        let aStudent = {
-          id:d.ID,
-          total:Number(useAlt? d.altTotal:d.total)
-        }
-        items.map(key=>aStudent[key]=Number(d[key]))
-
-        return aStudent;
-      })
-      res.columns=items
-
-      return res;
-    }
-  }
   //finsished
 
   dataForBar(data){
-
+    let maxScore= data.find(d=>d.ID=="MaxScore").total
     let count = {A:0,B:0,C:0,D:0};
     for (let i=0;i<data.length;i++)
     {
@@ -127,45 +119,70 @@ class VisContainer extends Component{
     this.setState({search:id})
   }
 
-  getData(items){
-    d3.csv('./grade.csv').then(d=>{
-      this.setState({data:this.dataTotal(d,items)})
+  getData(items,file,items2,file2){
+
+    d3.csv(file).then(d=>{
+      d3.csv(file2).then(dd=>{
+        this.setState({
+          data:this.dataTotal(d,items),
+          data2:this.dataTotal(dd,items2)
+        })
+      })
+
     })
+
+  }
+
+  findData(){
+    let selection;
+    let set;
+    if (!this.state.toggleClass){
+      set= this.state.data;
+      selection = this.state.toggleData? this.state.items.alt:this.state.items.default;
+    } else {
+      set= this.state.data2;
+      selection = this.state.toggleData? this.state.items2.alt:this.state.items2.default;
+    }
+    let altTotal=this.state.toggleData? true:false;
+
+    return {selection,set,altTotal}
   }
 
 
   componentWillMount(){
-    this.getData(items);
+    this.getData(this.state.items,'./grade.csv',this.state.items2,'./otherSet.csv');
+
   }
 
   componentDidMount(){
-    console.log('didmount',this.state.data);
   }
 
   componentWillUpdate(){
-
+    let rightData = this.findData();
+    console.log('right data?',rightData)
   }
 
   componentDidUpdate(){
-    let itemSelection = this.state.toggleData? items.alt:items.default;
-    console.log(this.state.toggleData,itemSelection)
-    if(!this.state.data){return (<div>loading data</div>)}
+    let rightData = this.findData();
+
     PieGraph(this.refs.pieSVG,
-      this.dataForPie(this.state.data,itemSelection));
+      dataForPie(rightData.set,rightData.selection));
     BarGraph(this.refs.barSVG,
-      this.dataForBar(this.state.data));
+      this.dataForBar(rightData.set));
     StackGraph(this.refs.stackSVG,
-      this.dataForStack(this.state.data,itemSelection,this.state.toggleData),
+      dataForStack(rightData.set,rightData.selection,rightData.altTotal),
       String(this.state.search))
   }
 
   render(){
-    console.log("render",this.state.data)
+
+
+    console.log("render",this.state)
     return(
       <div>
         <svg height="230" width="550" ref="pieSVG" />
         <svg height="250" width="550" ref="barSVG" />
-        <EnterId searchId={this.searchId} toggleData={this.toggleData} />
+        <EnterId searchId={this.searchId} toggleData={this.toggleData} toggleClass={this.toggleClass} />
         <svg height="550" width="550" ref="stackSVG" />
       </div>
     )
@@ -173,7 +190,3 @@ class VisContainer extends Component{
 
 
 export default VisContainer;
-
-//plans
-// toggle for different data.
-// total calc for toggle
